@@ -1,7 +1,7 @@
 #!/bin/bash
 # Este script lee el archivo que genera la IA 
-# Ruta acordada 
-ARCHIVO="/home/montesponcemontalban/Trabajo-GAR/modulo_ia/estado_seguridad.txt"
+# Ruta acordada con maquina IA 
+ARCHIVO="/tmp/estado_seguridad.txt"
 
 if [ -f "$ARCHIVO" ]; then
     cat "$ARCHIVO"
