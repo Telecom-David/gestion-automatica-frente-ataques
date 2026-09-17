@@ -1,0 +1,15 @@
+[Unit]
+Description=Dashboard de Monitorización SNMP 
+After=network.target
+
+[Service]
+Type=simple
+
+ExecStart=/usr/bin/python3 /home/ayipeton/dashboard_monitor.py
+Restart=always
+User=root
+# Esto hace que los print() de Python salgan inmediatamente en el log
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

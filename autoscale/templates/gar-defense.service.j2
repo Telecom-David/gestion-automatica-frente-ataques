@@ -1,0 +1,14 @@
+[Unit]
+Description=Sistema de Defensa IA 
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/usr/local/bin
+ExecStart=/usr/bin/python3 {{ ai_dir }}
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

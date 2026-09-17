@@ -1,0 +1,166 @@
+---
+- name: Configuración de la Infraestructura de la máquina propia
+  hosts: webservers
+  become: yes
+
+  vars: 
+    autoscale_dir: /usr/local/bin/autoscale.py
+    autoscale_log: /var/log/gar_scaling.log
+    service_dir: /etc/systemd/system
+    ai_dir: /usr/local/bin/detectar_en_vivo.py
+    ai_cerebro: /usr/local/bin/cerebro_ia.pkl
+    snmp_script: /usr/local/bin/monitor_ia.sh 
+
+  tasks:
+    # --- INSTALAR APACHE Y COMPROBAR QUE ESTÁ INICIADO --- #
+    - name: Instalar Apache y Apache2-utils
+      apt:
+        name: 
+          - apache2
+          - apache2-utils
+        state: present
+        update_cache: yes
+
+    - name: Asegurar servicio Apache
+      service:
+        name: apache2
+        state: started
+
+    # --- SE COPIA EL SCRIPT DE AUTOESCALADO EN LAS MÁQUINAS DESTINO Y SE CREA EL SERVICIO --- #
+    
+    - name: Instalar dependencias de Python (psutil)
+      apt:
+        name: python3-psutil
+        state: present
+
+    - name: Copiar script de auto-escalado a las máquinas
+      copy:
+        src: autoscale.py     # Asegúrate de tener este archivo en tu carpeta donde lanzas ansible
+        dest: "{{ autoscale_dir }}"
+        mode: '0755'
+
+#    - name: Crear archivo de log vacío (para evitar errores de permisos)
+#      file:
+#        path: "{{ autoscale_log }}"
+#        state: touch
+#        mode: '0666'  # Permisos amplios para pruebas
+
+#    - name: Crear servicio Systemd para el Auto-Escalado
+#      template:    
+#        src: gar-autoscale.service.j2
+#        dest: "{{ service_dir }}/gar-autoscale.service"
+
+    # --- SE COPIAN LOS FICHEROS DE LA IA Y SE CREA EL SERVICIO --- #
+    
+    # Se instala PIP para poder controlar la version de las librerías de python que se van a instalar
+
+    - name: Instalar gestor de paquetes PIP
+      apt:
+        name: python3-pip
+        state: present
+        update_cache: yes
+
+    - name: Instalación de dependencias de la IA mediante PIP
+      pip:
+        name:
+          - numpy>=2.0.0
+          - scikit-learn
+          - joblib
+        state: present
+        break_system_packages: true
+
+    - name: Copiar el "Cerebro" ((Modelo IA entrenado)
+      copy:
+        src: cerebro_ia.pkl
+        dest: "{{ ai_cerebro }}"
+        mode: '0644'
+
+    - name: Copiar el script de detección IA
+      copy:
+        src: detectar_en_vivo.py
+        dest: "{{ ai_dir }}"
+        mode: '0755'
+
+    - name: Crear el servicio Systemd para la Defensa IA
+      template:
+        src: gar-defense.service.j2
+        dest: "{{ service_dir }}/gar-defense.service"
+
+    - name: Instalar demonio SNMP
+      apt:
+        name: snmpd
+        state: present
+
+    - name: Copiar script pasarela SNMP (monitor_ia.sh)
+      copy:
+        src: monitor_ia.sh
+        dest: "{{ snmp_script }}"
+        mode: '0755'
+
+    - name: Configurar snmpd.conf
+      copy:
+        src: snmpd.conf
+        dest: /etc/snmp/snmpd.conf
+
+    # --- ÚLTIMO PASO: ACTIVACIÓN DE TODOS LOS SERVICIOS --- #
+    - name: Recargar daemons y arrancar servicios
+      systemd:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+        daemon_reload: yes
+      loop: 
+        - apache2
+#       - gar-autoscale
+        - gar-defense
+
+# ==============================================================================
+# BLOQUE 2: LA MÁQUINA 3  (Monitorización)
+# ==============================================================================
+- name: Configurar Estación de Adrián
+  hosts: gestion  # Apunta a la IP de la maquina 3
+  become: yes
+
+  vars:
+    dashboard_dest: /home/ayipeton/dashboard_monitor.py # ¡Ajusta el usuario!
+    service_dest: /etc/systemd/system/gar-monitor.service
+
+  tasks:
+    - name: Instalar herramientas de Monitorización
+      apt:
+        name:
+          - python3
+          - snmp      # Cliente SNMP (snmpwalk)
+        state: present
+
+    - name: Copiar Dashboard de Adrián
+      copy:
+        src: dashboard_monitor.py
+        dest: "{{ dashboard_dest }}"
+        mode: '0755'
+
+    - name: Crear servicio Systemd para el Monitor
+      template:
+        src: templates/gar-monitor.service.j2  # <--- Tu archivo nuevo
+        dest: "{{ service_dest }}"
+
+    - name: Arrancar el Monitor automáticamente
+      systemd:
+        name: gar-monitor
+        state: started
+        enabled: yes
+        daemon_reload: yes
+
+# ==============================================================================
+# BLOQUE 3: INSTALACIÓN DE APACHE2-UTILS EN ESTA MÁQUINA
+# ==============================================================================
+
+- name: Instalar apache2-utils en esta máquina virtual
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Instalar el servicio
+      apt:
+        name: apache2-utils
+        state: present
