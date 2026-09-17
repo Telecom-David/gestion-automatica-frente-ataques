@@ -4,11 +4,13 @@ After=network.target
 
 [Service]
 Type=simple
-
-ExecStart=/usr/bin/python3 /home/ayipeton/dashboard_monitor.py
+# Ajusta la ruta si decides ponerlo en otro sitio
+ExecStart=/usr/bin/python3 {{ dashboard_dest }}
 Restart=always
+RestartSec=5
 User=root
-# Esto hace que los print() de Python salgan inmediatamente en el log
+# Esto hace que los print() de Python salgan 
+# inmediatamente en el log
 Environment=PYTHONUNBUFFERED=1
 
 [Install]

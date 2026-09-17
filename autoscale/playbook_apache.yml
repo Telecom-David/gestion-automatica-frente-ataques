@@ -1,5 +1,5 @@
 ---
-- name: Configuración de la Infraestructura de la máquina propia
+- name: Configuración de la Infraestructura de la máquina IA
   hosts: webservers
   become: yes
 
@@ -25,7 +25,7 @@
       service:
         name: apache2
         state: started
-
+      
     # --- SE COPIA EL SCRIPT DE AUTOESCALADO EN LAS MÁQUINAS DESTINO Y SE CREA EL SERVICIO --- #
     
     - name: Instalar dependencias de Python (psutil)
@@ -38,7 +38,7 @@
         src: autoscale.py     # Asegúrate de tener este archivo en tu carpeta donde lanzas ansible
         dest: "{{ autoscale_dir }}"
         mode: '0755'
-
+# Esto al final no fue utilizado
 #    - name: Crear archivo de log vacío (para evitar errores de permisos)
 #      file:
 #        path: "{{ autoscale_log }}"
@@ -69,7 +69,7 @@
         state: present
         break_system_packages: true
 
-    - name: Copiar el "Cerebro" ((Modelo IA entrenado)
+    - name: Copiar el "Cerebro" (Modelo IA entrenado)
       copy:
         src: cerebro_ia.pkl
         dest: "{{ ai_cerebro }}"
@@ -113,16 +113,17 @@
         - apache2
 #       - gar-autoscale
         - gar-defense
+        - snmpd
 
 # ==============================================================================
-# BLOQUE 2: LA MÁQUINA 3  (Monitorización)
+# BLOQUE 2: LA MÁQUINA DE Monitorización
 # ==============================================================================
-- name: Configurar Estación de Adrián
-  hosts: gestion  # Apunta a la IP de la maquina 3
+- name: Configurar Estación de Monitorización
+  hosts: gestion  # Apunta a la IP de Monitorización
   become: yes
 
   vars:
-    dashboard_dest: /home/ayipeton/dashboard_monitor.py # ¡Ajusta el usuario!
+    dashboard_dest: /home/ayipeton/dashboard_monitor.py # Ajusta el usuario(destino del archivo de panel de control)
     service_dest: /etc/systemd/system/gar-monitor.service
 
   tasks:
@@ -133,7 +134,7 @@
           - snmp      # Cliente SNMP (snmpwalk)
         state: present
 
-    - name: Copiar Dashboard de Adrián
+    - name: Copiar Dashboard de Monitorización
       copy:
         src: dashboard_monitor.py
         dest: "{{ dashboard_dest }}"
