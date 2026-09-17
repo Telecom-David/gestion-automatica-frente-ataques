@@ -2,16 +2,16 @@ import joblib
 import numpy as np
 import time
 import os
-import warnings # <--- Necesario para limpiar la consola
+import warnings # Necesario para limpiar la consola
 
 # --- SILENCIADOR DE AVISOS ---
-# Esto elimina el texto "UserWarning" feo de la consola
+# Esto elimina el texto "UserWarning" de la consola
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# --- CONFIGURACIÓN DE CONEXIÓN ---
-# [INTEGRACIÓN CON MAQUINA 2]: Cuando M2 termine, se debe de cambiar a "/var/log/apache2/access.log"
+# --- CONFIGURACIÓN DE CONEXIÓN CON Monitorizacion Y Automatizacion ---
+# [INTEGRACIÓN CON Automatizacion]: se cambio de prueba local a "/var/log/apache2/access.log"
 ARCHIVO_LOGS = "/var/log/apache2/access.log"
-# [INTEGRACIÓN CON MAQUINA 3]: 
+# [INTEGRACIÓN CON Monitorizacion]: 
 # Archivo "Buzón" para comunicación asíncrona con el agente SNMP.
 # Contenido: "1" (Alerta/Ataque) | "0" (Normal).
 
@@ -28,8 +28,8 @@ if not os.path.exists('cerebro_ia.pkl'):
 modelo = joblib.load('cerebro_ia.pkl')
 
 
-print(f"Escucando log reales de MAQUINA 2 en: {ARCHIVO_LOGS}")
-print(f"Escribiendo alertas para NAQQUINA 3 en: {ARCHIVO_ALERTA}")
+print(f"Escucando log reales de Rodri en: {ARCHIVO_LOGS}")
+print(f"Escribiendo alertas para Adrián en: {ARCHIVO_ALERTA}")
 print("   (Pulsa Ctrl+C para detener)")
 
 # COMO EL ARCHIVO CAMBIA CONSTANTEMENTE CON LOS LOGS DEBEMOS DE LEER LINEA A LINEA SEGUN
@@ -65,7 +65,7 @@ try:
                 #REALIZAMOS LA LINEA DE DATOS
                 partes = linea.split('"')
 
-                #Por si hay linas vacias
+                #Por si hay lineas vacias
                 if len(partes) < 3:
                     continue
 
@@ -98,7 +98,7 @@ try:
                 # En IsolationForest: -1 es anomalía (ataque), 1 es normal
                 es_ataque = True if prediccion[0] == -1 else False
         
-                # 3. AVISAMOS A ADRIÁN (Escribimos en el archivo)
+                # 3. AVISAMOS A Monitorizacion (Escribimos en el archivo)
                 with open(ARCHIVO_ALERTA, "w") as f:
                     if es_ataque:
                         f.write("1")
@@ -108,7 +108,7 @@ try:
                 if es_ataque:
 
                     print(f"\033[91m🚨 ¡ATAQUE DETECTADO! Tiempo: {tiempo_simulado:.2f}s | Peso: {tamano_real:.0f}B\033[0m")
-                    # El archivo ya tiene un "1", así que nos quedamos quietos 1.5s para que la MAQUINA 2 lo lea
+                    # El archivo ya tiene un "1", así que nos quedamos quietos 1.5s para que Monitorizacion lo lea
                     time.sleep(2)
                 else:
 

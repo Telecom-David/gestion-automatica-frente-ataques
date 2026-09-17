@@ -1,6 +1,6 @@
 #!/bin/bash
 # Este script lee el archivo que genera la IA 
-# Ruta acordada 
+# Ruta acordada con maquina IA 
 ARCHIVO="/tmp/estado_seguridad.txt"
 
 if [ -f "$ARCHIVO" ]; then

@@ -9,6 +9,7 @@ WorkingDirectory=/usr/local/bin
 ExecStart=/usr/bin/python3 {{ ai_dir }}
 Restart=always
 RestartSec=5
+Environment=PYTHONUNBUFFERED=1
 
 [Install]
 WantedBy=multi-user.target
